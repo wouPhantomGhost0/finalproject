@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Utensils, Mail, Lock, User, ArrowRight, LogOut } from 'lucide-react';
+import { Utensils, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import HomeMenu from './HomeMenu';
 
-
-// useState is a short term memory, if the browser refreshes, the memory is lost
-// function is a reusable block of code, its like methods in JavaProg
 function App() {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
@@ -12,7 +10,6 @@ function App() {
   const [error, setError] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
 
-  // e stands for event
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
@@ -22,33 +19,21 @@ function App() {
       return;
     }
 
-    // place where MongoDB connects
+    // Logs straight into HomeMenu without requiring MongoDB
     setCurrentUser({
       name: isLogin ? email.split('@')[0] : name,
       email,
     });
   };
 
-  // Temporary logged-in screen to test
   if (currentUser) {
     return (
-      <div className="auth-card" style={{ textAlign: 'center' }}>
-        <div className="logo-badge">
-          <Utensils size={26} />
-        </div>
-        <h2>Welcome, {currentUser.name}!</h2>
-        <p style={{ color: '#64748b', margin: '0.5rem 0 1.5rem' }}>
-          Logged in as {currentUser.email}
-        </p>
-        <button
-          className="submit-btn"
-          style={{ background: '#334155' }}
-          onClick={() => setCurrentUser(null)}
-        >
-          <LogOut size={18} />
-          Log Out
-        </button>
-      </div>
+      <HomeMenu
+        user={currentUser}
+        onCreateSession={() => console.log('Creating session...')}
+        onJoinSession={(code) => console.log('Joining session:', code)}
+        onLogout={() => setCurrentUser(null)}
+      />
     );
   }
 
@@ -62,7 +47,6 @@ function App() {
         <p>Group Dining Preference Matcher</p>
       </div>
 
-      {/* Toggle between Login and Sign Up */}
       <div className="tab-switch">
         <button
           type="button"
@@ -140,5 +124,3 @@ function App() {
 }
 
 export default App;
-
-// got the logo from lucide-react, it has a lot of icons, look at the top import
