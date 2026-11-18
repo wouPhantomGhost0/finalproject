@@ -9,6 +9,8 @@ function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+  const [activeRoom, setActiveRoom] = useState(null);
+  const [roomError, setRoomError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,14 +28,76 @@ function App() {
     });
   };
 
+  const handleCreateSession = async () => {
+    setRoomError('');
+    try {
+      const response = await fetch('http://localhost:5000/api/rooms/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({ host: currentUser.name || 'Host'}),
+      });
+
+      const data = await response.json();
+      console.log('Server reply:', response.status, data);
+
+      if (response.ok && data.code) {
+        setActiveRoom(data.code);
+      }else{
+        setRoomError(data.message || 'Server replied without a room code.');
+      }
+
+    } catch (err){
+      console.error('Fetch error:', err);
+      setRoomError('Cannot reach the server. Make sure node server.js is runninng.');
+    }
+  };
+
+  const handleJoinSession = async (code) => {
+    setRoomError('');
+    try {
+      const response = await fetch(`http://localhost:5000/api/rooms/${code}`);
+      const data = await response.json();
+
+      if (response.ok && data.code) {
+        setActiveRoom(data.code);
+      }else{
+        setRoomError(data.message || 'Room not found.');
+      }
+    }catch (err){
+      setRoomError('Cannot reach the server. Make sure node server.js is running.');
+    }
+  };
+
   if (currentUser) {
-    return (
+    if (activeRoom) {
+      return (
+        <div className="auth-card" style={{ textAlign: 'center'}}>
+          <h2>Room Code: {activeRoom}</h2>
+          <p style={{ color: '#6478b', margin: '0.5rem 0 1.5rem' }}>
+            Share this code with your friends
+          </p>
+          <button className="submit-btn" onClick={() => setActiveRoom(null)}>
+            Leave Room
+          </button>
+        </div>
+      );
+    }
+
+    return(
+      <>
+      {roomError && (
+        <p style={{color: '#dc2626', textAlign: 'center', fontWeight: 600, marginTop: '1rem'}}>
+          {roomError}
+        </p>
+      )}
+    
       <HomeMenu
         user={currentUser}
-        onCreateSession={() => console.log('Creating session...')}
-        onJoinSession={(code) => console.log('Joining session:', code)}
+        onCreateSession={handleCreateSession}
+        onJoinSession={handleJoinSession}
         onLogout={() => setCurrentUser(null)}
       />
+    </>
     );
   }
 
