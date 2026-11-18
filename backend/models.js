@@ -29,4 +29,24 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-module.exports = { User };
+const roomSchema = new mongoose.Schema({
+  code: {
+    type: String,
+    required: true,
+    unique: true,
+    uppercase: true,
+    trim: true,
+  },
+  host: {
+    type: String,
+    default: 'Host',
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+const Room = mongoose.model('Room', roomSchema);
+
+module.exports = { User, Room };
