@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Utensils, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import HomeMenu from './HomeMenu';
+import RoomLobby from './RoomLobby';
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);
@@ -34,7 +35,10 @@ function App() {
       const response = await fetch('http://localhost:5000/api/rooms/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json'},
-        body: JSON.stringify({ host: currentUser.name || 'Host'}),
+        body: JSON.stringify({
+          host: currentUser.name || 'Host',
+          email: currentUser.email || '',
+        }),
       });
 
       const data = await response.json();
@@ -52,10 +56,21 @@ function App() {
     }
   };
 
+
   const handleJoinSession = async (code) => {
     setRoomError('');
+    const cleanedCode = code.trim().toUpperCase();
+    if(!cleanedCode) return;
+
     try {
-      const response = await fetch(`http://localhost:5000/api/rooms/${code}`);
+      const response = await fetch(`http://localhost:5000/api/rooms/${cleanedCode}/join`,{
+        method: 'POST',
+        headers: {'Content-Type' : 'application/json'},
+        body: JSON.stringify({
+          name: currentUser.name,
+          email: currentUser.email,
+        }),
+      });
       const data = await response.json();
 
       if (response.ok && data.code) {
@@ -71,15 +86,11 @@ function App() {
   if (currentUser) {
     if (activeRoom) {
       return (
-        <div className="auth-card" style={{ textAlign: 'center'}}>
-          <h2>Room Code: {activeRoom}</h2>
-          <p style={{ color: '#6478b', margin: '0.5rem 0 1.5rem' }}>
-            Share this code with your friends
-          </p>
-          <button className="submit-btn" onClick={() => setActiveRoom(null)}>
-            Leave Room
-          </button>
-        </div>
+        <RoomLobby
+          roomCode={activeRoom}
+          currentUser={currentUser}
+          onLeaveRoom={() => setActiveRoom(null)}
+        />
       );
     }
 

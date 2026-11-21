@@ -29,6 +29,38 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+
+const memberSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      lowercase: true,
+      trim: true,
+      default: '',
+    },
+    budget: {
+      type: String,
+      trim: true,
+    default: '',
+    },
+    cannotEat: {
+      type: [String],
+      default: [],
+    },
+    isHost: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {_id: false}
+);
+
+
 const roomSchema = new mongoose.Schema({
   code: {
     type: String,
@@ -40,6 +72,14 @@ const roomSchema = new mongoose.Schema({
   host: {
     type: String,
     default: 'Host',
+  },
+  members: {
+    type: [memberSchema],
+    default: [],
+  },
+  status: {
+    type: String,
+    default: 'lobby',
   },
   createdAt: {
     type: Date,

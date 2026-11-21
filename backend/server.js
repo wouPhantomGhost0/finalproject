@@ -79,9 +79,21 @@ app.post('/api/rooms/create', async (req, res) => {
       exists = await Room.findOne({ code });
     }
 
+    const hostName = (req.body.host || 'Host').trim();
+    const hostEmail = (req.body.email || '').trim().toLowerCase();
+
     const newRoom = await Room.create({
       code,
-      host: req.body.host || 'Host',
+      host: hostName,
+      members: [
+        {
+          name: hostName,
+          email: hostEmail,
+          budget: '',
+          cannotEat: [],
+          isHost: true,
+        },
+      ],
     });
 
     res.status(201).json(newRoom);
@@ -90,21 +102,106 @@ app.post('/api/rooms/create', async (req, res) => {
   }
 });
 
-    // SEARCH / JOIN A ROOM ROUTE
-    app.get('/api/rooms/:code', async (req, res) => {
-      try {
-        const code = req.params.code.toUpperCase();
-        const room = await Room.findOne({ code });
 
-        if(!room) {
-          return res.status(404).json({message: 'Room not found.'});
-        }
+// SERCH ROOM
+app.get('/api/rooms/:code', async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase().trim();
+    const room = await Room.findOne({ code });
 
-        res.json(room);
-      } catch (err) {
-        res.status(500).json({message: 'Server error finding room.'});
+    if(!room) {
+      return res.status(404).json({message: 'Room not found.'});
+    }
+
+    res.json(room);
+  }catch (err) {
+    res.status(500).json({message: 'Server error finding room.'});
+  }
+});
+
+// JOIN A ROOM OR INVITE A MEMBER BY USERNAME OR EMAIL
+app.post('/api/rooms/:code/join', async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase().trim();
+    const room = await Room.findOne({ code });
+
+    if(!room) {
+      return res.status(404).json({message: 'Room not found.'});
+    }
+
+    const rawInput = (req.body.name || req.body.email || '').trim();
+    if (!rawInput){
+      return res.status(400).json({message: 'Please enter a name or email'});
+    }
+
+    const isEmail = rawInput.includes('@');
+    const memberEmail = (req.body.email || (isEmail ? rawInput : '')).trim().toLowerCase();
+    const memberName = (req.body.name || (isEmail ? rawInput.split('@')[0] : rawInput)).trim();
+
+    const existingMember = room.members.find(
+      (m) => (memberEmail && m.email.toLowerCase() === memberEmail) || m.name.toLowerCase() === memberName.toLowerCase()
+    );
+
+    if(!existingMember){
+      room.members.push({
+        name: memberName,
+        email: memberEmail,
+        budget: '',
+        cannotEat: [],
+        isHost: false,
+      });
+      await room.save();
+    }else{
+      let updated = false;
+      if(memberEmail && !existingMember.email){
+        existingMember.email = memberEmail;
+        updated = true;
       }
-    });
+      if (req.body.name && existingMember.name !== memberName){
+        existingMember.name = memberName;
+        updated = true;
+      }
+      if(updated) await room.save();
+    }
+
+    res.json(room);
+  } catch (err) {
+    console.error('Join room error:', err);
+    res.status(500).json({message: 'Server error adding member to room.'});
+  }
+});
+    
+
+// UPDATE A MEMBER'S BUDGET AND CANNOT EAT LIST
+app.put('/api/rooms/:code/preferences', async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase().trim();
+    const {name, email, budget, cannotEat} = req.body;
+
+    const room = await Room.findOne({ code });
+    if(!room) {
+      return res.status(404).json({message: 'Room not found.'});
+    }
+
+    const member = room.members.find(
+      (m) => (email && m.email.toLowerCase() === email.toLowerCase().trim()) || (name && m.name.toLowerCase() == name.toLowerCase().trim())
+    );
+
+    if(!member) {
+      return res.status(404).json({message: 'Member not found in room.'});
+    }
+
+    if(budget !== undefined) member.budget = budget;
+    if (cannotEat !== undefined) member.cannotEat = cannotEat;
+
+    await room.save();
+    res.json(room);
+  } catch (err) {
+    res.status(500).json({message: 'Server error saving preferences.'})
+  }
+});
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
