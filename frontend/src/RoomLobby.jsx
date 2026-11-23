@@ -1,6 +1,6 @@
 import {useState, useEffect, useRef} from 'react';
 import{
-    Users, Copy, Check, UserPlus, Wallet, Ban, Plus, X, LogOut, Crown, Sparkles
+    Users, Copy, Check, UserPlus, Wallet, Ban, Plus, X, LogOut, Crown, Sparkles, ArrowLeft
 } from 'lucide-react';
 
 const QUICK_RESTRICTIONS = ['Peanuts', 'Shellfish', 'Dairy', 'Eggs', 'Pork', 'Gluten', 'Spicy'];
@@ -23,6 +23,8 @@ function RoomLobby({roomCode, currentUser, onLeaveRoom}) {
     const [foodInput, setFoodInput] = useState('');
     const [savingPrefs, setSavingPrefs] = useState(false);
     const [prefsSaved, setPrefsSaved] = useState(false);
+
+    const [leaving, setLeaving] = useState(false);
 
     // track whether its already loaded to user's saved preferences into the inputs
     const initializedPrefs = useRef(false);
@@ -69,6 +71,32 @@ function RoomLobby({roomCode, currentUser, onLeaveRoom}) {
         navigator.clipboard.writeText(roomCode);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handlePermanentLeave = async () => {
+        setLeaving(true);
+        setLobbyError('');
+        try {
+            const response = await fetch(`http://localhost:5000/api/rooms/${roomCode}/leave`, {
+                method: 'POST',
+                headers:{'Content-Type' : 'application/json'},
+                body: JSON.stringify({
+                    name: currentUser.name,
+                    email: currentUser.email,
+                }),
+            });
+            const data = await response.json();
+
+            if(response.ok){
+                onLeaveRoom();
+            }else{
+                setLobbyError(data.message || 'Could not leave room.');
+            }
+        } catch (err) {
+            setLobbyError('Server error leaving room.');
+        } finally {
+            setLeaving(false);
+        }
     };
 
     const handleAddMember = async (e) => {
@@ -222,26 +250,50 @@ function RoomLobby({roomCode, currentUser, onLeaveRoom}) {
                     </p>
                 </div>
 
-            <button
-                type="button"
-                onClick={onLeaveRoom}
-                style={{
+            <div style = {{display: 'flex', flexWrap: 'wrap', gap: '0.5rem'}}>
+                <button
+                  type="button"
+                  onClick={onLeaveRoom}
+                  style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.4rem',
-                    padding: '0.6rem 1rem',
+                    padding: '0.6rem 0.95rem',
                     borderRadius: '10px',
-                    border: '1px solid #fee2e2',
-                    background: '#fef2f2',
-                    color: '#dc3626',
+                    border: '1px solid #cbd5e1',
+                    background: '#f8fafc',
+                    color: '#334155',
                     fontWeight: 600,
-                    fontSize: '0.9rem',
+                    fontSize: '0.88rem',
                     cursor: 'pointer',
-                }}
-                >
-                    <LogOut size={16} />
-                        Leave Room
-            </button>
+                  }}
+                  >
+                    <ArrowLeft size={16} />
+                    Back to Home
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePermanentLeave}
+                    disabled={leaving}
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        padding: '0.6rem 0.95rem',
+                        borderRadius: '10px',
+                        border: '1px solid #fee2e2',
+                        background: '#fef2f2',
+                        color: '#dc2626',
+                        fontWeight: 600,
+                        fontSize: '0.88rem',
+                        cursor: 'pointer',
+                    }}
+                    >
+                        <LogOut size={16} />
+                        {leaving ? 'Leaving...' : 'Leave Permanently'}
+                    </button>
+            </div>
         </div>
 
         {lobbyError && (

@@ -201,7 +201,62 @@ app.put('/api/rooms/:code/preferences', async (req, res) => {
   }
 });
 
+// leave room permanently
+app.post('/api/rooms/:code/leave', async (req, res) => {
+  try {
+    const code =req.params.code.toUpperCase().trim();
+    const {name, email} = req.body;
 
+    const room = await Room.findOne({code});
+    if(!room){
+      return res.status(404).json({message: 'Room not found.'});
+    }
+
+    //Keep everyong except the person who is leaving
+    room.members = room.members.filter((m) =>{
+      const sameEmail = email && m.email && m.email.toLowerCase() === email.toLowerCase().trim();
+      const sameName = name && m.name.toLowerCase() === name.toLowerCase().trim();
+      return !(sameEmail || sameName);
+    });
+
+    if (room.members.length === 0){
+      await Room.deleteOne({code});
+      return res.json({deleted: true});
+    }
+
+    await room.save();
+    res.json(room);
+  } catch (err) {
+    console.error('Leave room error', err);
+    res.status(500).json({message: 'Server error leaving room.'});
+  }
+});
+
+
+// get all active rooms for the logged-in user
+app.get('/api/my-rooms', async(req, res) => {
+  try {
+    const email = (req.query.email || '').trim().toLowerCase();
+    const name = (req.query.name || '').trim().toLowerCase();
+
+    if(!email && !name){
+      return res.json([]);
+    }
+
+    const allRooms = await Room.find().sort({_id: -1});
+    const myRooms = allRooms.filter((room) =>
+    room.members.some( (m) => 
+      (email && m.email && m.email.toLowerCase() === email) || 
+      (name && m.name && m.name.toLowerCase() === name)
+    )
+  );
+
+  res.json(myRooms);
+  } catch (err) {
+    console.error('Fetch my rooms error:', err);
+    res.status(500).json({message: 'Server error loading your rooms.'});
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
