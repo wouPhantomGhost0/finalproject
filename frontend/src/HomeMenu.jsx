@@ -1,8 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Utensils, Plus, ArrowRight } from 'lucide-react';
 import './HomeMenu.css';
 
 export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogout }) {
   const [roomCode, setRoomCode] = useState('');
+  const [myRooms, setMyRooms] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams({
+      name: user.name || '',
+      email: user.email || '',
+    });
+
+    fetch(`http://localhost:5000/api/my-rooms?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setMyRooms(data);
+      })
+      .catch(() => setMyRooms([]));
+  }, [user]);
 
   const handleJoin = (e) => {
     e.preventDefault();
@@ -16,12 +33,16 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
       {/* Top Navigation Bar */}
       <nav className="navbar">
         <div className="nav-brand">
-          <span className="brand-icon">🍴</span>
+          <span className="brand-icon">
+            <Utensils size={20} />
+          </span>
           <h2>CraveMatch</h2>
         </div>
         <div className="nav-actions">
           <span className="user-greeting">Hi, {user?.name || 'Foodie'}</span>
-          <button className="btn-secondary" onClick={onLogout}>Log Out</button>
+          <button className="btn-secondary" onClick={onLogout}>
+            Log Out
+          </button>
         </div>
       </nav>
 
@@ -35,17 +56,22 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
         <div className="action-grid">
           {/* Card 1: Host a Session */}
           <div className="action-card primary-card">
-            <h3>Start a Group Session</h3>
-            <p>Set your budget, location radius, and dietary filters, then invite your group.</p>
+            <div>
+              <h3>Start a Group Session</h3>
+              <p>Set your budget, location radius, and dietary filters, then invite your group.</p>
+            </div>
             <button className="btn-primary" onClick={onCreateSession}>
-              + Create New Session
+              <Plus size={18} />
+              Create New Session
             </button>
           </div>
 
           {/* Card 2: Join a Session */}
           <div className="action-card">
-            <h3>Join with a Code</h3>
-            <p>Got an invite code from a friend? Enter it below to start swiping.</p>
+            <div>
+              <h3>Join with a Code</h3>
+              <p>Got an invite code from a friend? Enter it below to start swiping.</p>
+            </div>
             <form onSubmit={handleJoin} className="join-form">
               <input
                 type="text"
@@ -54,10 +80,40 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value)}
               />
-              <button type="submit" className="btn-dark">Join</button>
+              <button type="submit" className="btn-dark">
+                Join
+              </button>
             </form>
           </div>
         </div>
+
+        {/* Active Joined Rooms */}
+        {myRooms.length > 0 && (
+          <section className="rooms-section">
+            <h3>Your Rooms ({myRooms.length})</h3>
+            <div className="rooms-list">
+              {myRooms.map((room) => (
+                <div
+                  key={room.code}
+                  className="room-item-card"
+                  onClick={() => onJoinSession(room.code)}
+                >
+                  <div>
+                    <div className="room-code-label">{room.code}</div>
+                    <div className="room-meta">
+                      Host: <strong>{room.host}</strong> &bull; {room.members.length}{' '}
+                      {room.members.length === 1 ? 'member' : 'members'}
+                    </div>
+                  </div>
+                  <button type="button" className="btn-primary">
+                    Rejoin
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

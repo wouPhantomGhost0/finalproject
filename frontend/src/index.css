@@ -8,19 +8,26 @@
 body {
   background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
   min-height: 100vh;
+  color: #1e293b;
+}
+
+/* Centers the login/signup card without breaking full-page views */
+.auth-wrapper {
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1e293b;
+  padding: 1.5rem;
 }
 
 .auth-card {
   background: #ffffff;
   width: 100%;
   max-width: 420px;
-  padding: 2.5rem 2rem;
-  border-radius: 20px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  padding: 2.25rem 2rem;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
 }
 
 .brand-header {
@@ -31,9 +38,9 @@ body {
 .logo-badge {
   width: 52px;
   height: 52px;
-  background: #FF9100;
-  color: white;
-  border-radius: 14px;
+  background: #f97316;
+  color: #ffffff;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -76,7 +83,7 @@ body {
 .tab-btn.active {
   background: #ffffff;
   color: #f97316;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .form-group {
@@ -101,14 +108,18 @@ body {
   position: absolute;
   left: 12px;
   color: #94a3b8;
+  pointer-events: none;
 }
 
 .input-box input {
   width: 100%;
-  padding: 0.75rem 0.9rem 0.75rem 2.5rem;
+  height: 44px;
+  padding: 0 0.9rem 0 2.5rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  color: #0f172a;
+  background: #ffffff;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -119,15 +130,16 @@ body {
 
 .submit-btn {
   width: 100%;
+  height: 44px;
   margin-top: 0.5rem;
-  padding: 0.85rem;
-  background: #FF9100;
-  color: white;
+  padding: 0 1.25rem;
+  background: #f97316;
+  color: #ffffff;
   border: none;
   border-radius: 10px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -136,12 +148,18 @@ body {
 }
 
 .submit-btn:hover {
-  background: #00B7CD;
+  background: #ea580c;
+}
+
+.submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .error-text {
-  color: #ef4444;
+  color: #dc2626;
   font-size: 0.85rem;
+  font-weight: 500;
   margin-bottom: 0.75rem;
   text-align: center;
 }
