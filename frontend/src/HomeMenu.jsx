@@ -4,7 +4,7 @@ import './HomeMenu.css';
 
 export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogout }) {
   const [roomCode, setRoomCode] = useState('');
-  const [myRooms, setMyRooms] = useState([]);
+    const [myRooms, setMyRooms] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -85,6 +85,48 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
               </button>
             </form>
           </div>
+
+
+          {/* Active Joined Rooms*/}
+          {myRooms.length > 0 && (
+            <section style={{ marginTop: '2rem', textAlign: 'left'}}>
+              <h3 style={{ margin: '0 0 0.75rem', fontSize: '1.1rem', color: '#0f172a'}}>
+                Your Rooms ({myRooms.length})
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+                {myRooms.map((room) => (
+                  <div
+                    key={room.code}
+                    onClick={() => onJoinSession(room.code)}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '14px',
+                      padding: '1rem 1.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.04)',
+                    }}
+                    >
+                      <div>
+                        <div style={{fontWeight: 800, fontSize: '1.15rem', letterSpacing: '0.1rem', color: '#0f172a'}}>
+                          {room.code}
+                        </div>
+                        <div style={{fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem'}}>
+                          Host: <strong>{room.host}</strong> • {room.members.length}{' '}
+                          {room.members.length === 1 ? 'member' : 'members'}
+                        </div>
+                      </div>
+                      <button type="button" className='btn-primary'>
+                        Rejoin →
+                      </button>
+                    </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Active Joined Rooms */}
