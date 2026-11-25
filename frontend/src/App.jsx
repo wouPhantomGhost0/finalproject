@@ -33,7 +33,11 @@ function App() {
     try {
       const response = await fetch('http://localhost:5000/api/rooms/create', {
         method: 'POST',
+<<<<<<< HEAD
         headers: { 'Content-Type': 'application/json' },
+=======
+        headers: { 'Content-Type': 'application/json'},
+>>>>>>> 79618afe5ea0f3eca98bbc69c4185d7b5659eb41
         body: JSON.stringify({
           host: currentUser.name || 'Host',
           email: currentUser.email || '',
@@ -45,6 +49,7 @@ function App() {
 
       if (response.ok && data.code) {
         setActiveRoom(data.code);
+<<<<<<< HEAD
       } else {
         setRoomError(data.message || 'Server replied without a room code.');
       }
@@ -63,6 +68,28 @@ function App() {
       const response = await fetch(`http://localhost:5000/api/rooms/${cleanedCode}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+=======
+      }else{
+        setRoomError(data.message || 'Server replied without a room code.');
+      }
+
+    } catch (err){
+      console.error('Fetch error:', err);
+      setRoomError('Cannot reach the server. Make sure node server.js is runninng.');
+    }
+  };
+
+
+  const handleJoinSession = async (code) => {
+    setRoomError('');
+    const cleanedCode = code.trim().toUpperCase();
+    if(!cleanedCode) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/rooms/${cleanedCode}/join`,{
+        method: 'POST',
+        headers: {'Content-Type' : 'application/json'},
+>>>>>>> 79618afe5ea0f3eca98bbc69c4185d7b5659eb41
         body: JSON.stringify({
           name: currentUser.name,
           email: currentUser.email,
@@ -72,10 +99,17 @@ function App() {
 
       if (response.ok && data.code) {
         setActiveRoom(data.code);
+<<<<<<< HEAD
       } else {
         setRoomError(data.message || 'Room not found.');
       }
     } catch (err) {
+=======
+      }else{
+        setRoomError(data.message || 'Room not found.');
+      }
+    }catch (err){
+>>>>>>> 79618afe5ea0f3eca98bbc69c4185d7b5659eb41
       setRoomError('Cannot reach the server. Make sure node server.js is running.');
     }
   };
@@ -91,6 +125,7 @@ function App() {
       );
     }
 
+<<<<<<< HEAD
     return (
       <>
         {roomError && (
@@ -116,6 +151,23 @@ function App() {
           onLogout={() => setCurrentUser(null)}
         />
       </>
+=======
+    return(
+      <>
+      {roomError && (
+        <p style={{color: '#dc2626', textAlign: 'center', fontWeight: 600, marginTop: '1rem'}}>
+          {roomError}
+        </p>
+      )}
+    
+      <HomeMenu
+        user={currentUser}
+        onCreateSession={handleCreateSession}
+        onJoinSession={handleJoinSession}
+        onLogout={() => setCurrentUser(null)}
+      />
+    </>
+>>>>>>> 79618afe5ea0f3eca98bbc69c4185d7b5659eb41
     );
   }
 
