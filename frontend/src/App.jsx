@@ -23,9 +23,15 @@ function App() {
     }
 
     setCurrentUser({
-      name: isLogin ? email.split('@')[0] : name,
-      email,
+      name: isLogin ? email.split('@')[0] : name.trim(),
+      email: email.trim(),
     });
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setActiveRoom(null);
+    setRoomError('');
   };
 
   const handleCreateSession = async () => {
@@ -41,7 +47,6 @@ function App() {
       });
 
       const data = await response.json();
-      console.log('Server reply:', response.status, data);
 
       if (response.ok && data.code) {
         setActiveRoom(data.code);
@@ -76,6 +81,7 @@ function App() {
         setRoomError(data.message || 'Room not found.');
       }
     } catch (err) {
+
       setRoomError('Cannot reach the server. Make sure node server.js is running.');
     }
   };
@@ -113,7 +119,7 @@ function App() {
           user={currentUser}
           onCreateSession={handleCreateSession}
           onJoinSession={handleJoinSession}
-          onLogout={() => setCurrentUser(null)}
+          onLogout={handleLogout}
         />
       </>
     );

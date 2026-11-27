@@ -1,11 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
 import {
+  Users,
   Copy,
   Check,
   UserPlus,
+  Wallet,
+  Ban,
   Plus,
   X,
   LogOut,
+  Crown,
   Sparkles,
   ArrowLeft,
 } from 'lucide-react';
@@ -22,6 +27,19 @@ const sharedInputStyle = {
   color: '#0f172a',
   background: '#ffffff',
   outline: 'none',
+};
+
+const matchesUser = (member, currentUser) => {
+  if (!member || !currentUser) return false;
+  const emailMatch =
+    currentUser.email &&
+    member.email &&
+    member.email.toLowerCase() === currentUser.email.toLowerCase();
+  const nameMatch =
+    currentUser.name &&
+    member.name &&
+    member.name.toLowerCase() === currentUser.name.toLowerCase();
+  return Boolean(emailMatch || nameMatch);
 };
 
 function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
@@ -44,7 +62,7 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
 
   const initializedPrefs = useRef(false);
 
-  const fetchRoom = async () => {
+  const fetchRoom = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:5000/api/rooms/${roomCode}`);
       const data = await response.json();
@@ -53,12 +71,8 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
         setRoom(data);
         setLobbyError('');
 
-        if (!initializedPrefs.current && data.members) {
-          const me = data.members.find(
-            (m) =>
-              (currentUser.email && m.email.toLowerCase() === currentUser.email.toLowerCase()) ||
-              m.name.toLowerCase() === currentUser.name.toLowerCase()
-          );
+        if (!initializedPrefs.current && Array.isArray(data.members)) {
+          const me = data.members.find((m) => matchesUser(m, currentUser));
           if (me) {
             setBudget(me.budget || '');
             setCannotEat(me.cannotEat || []);
@@ -73,18 +87,24 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [roomCode, currentUser]);
 
   useEffect(() => {
+    initializedPrefs.current = false;
+    setLoading(true);
     fetchRoom();
     const interval = setInterval(fetchRoom, 3000);
     return () => clearInterval(interval);
-  }, [roomCode]);
+  }, [fetchRoom]);
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(roomCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setLobbyError('Could not copy room code to clipboard.');
+    }
   };
 
   const handlePermanentLeave = async () => {
@@ -193,12 +213,10 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
   };
 
   const isHost =
-    room?.members?.some(
-      (m) =>
-        m.isHost &&
-        ((currentUser.email && m.email.toLowerCase() === currentUser.email.toLowerCase()) ||
-          m.name.toLowerCase() === currentUser.name.toLowerCase())
-    ) || room?.host?.toLowerCase() === currentUser.name.toLowerCase();
+    room?.members?.some((m) => m.isHost && matchesUser(m, currentUser)) ||
+    (room?.host &&
+      currentUser?.name &&
+      room.host.toLowerCase() === currentUser.name.toLowerCase());
 
   if (loading) {
     return (
@@ -247,7 +265,14 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
             Group Session Lobby
           </span>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginTop: '0.25rem',
+            }}
+          >
             <h2
               style={{
                 margin: 0,
@@ -369,9 +394,12 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
             boxShadow: '0 10px 25px rgba(15, 23, 42, 0.06)',
           }}
         >
-          <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
-            Group Members ({room?.members?.length || 0})
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Users size={20} color="#f97316" />
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+              Group Members ({room?.members?.length || 0})
+            </h3>
+          </div>
 
           {/* Host Add Member Form */}
           {isHost && (
@@ -424,10 +452,7 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
           {/* Live Member Cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {room?.members?.map((member, index) => {
-              const isMe =
-                (currentUser.email &&
-                  member.email.toLowerCase() === currentUser.email.toLowerCase()) ||
-                member.name.toLowerCase() === currentUser.name.toLowerCase();
+              const isMe = matchesUser(member, currentUser);
 
               return (
                 <div
@@ -463,7 +488,7 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
                           flexShrink: 0,
                         }}
                       >
-                        {member.name.charAt(0).toUpperCase()}
+                        {member.name?.charAt(0).toUpperCase() || '?'}
                       </div>
                       <div>
                         <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
@@ -480,6 +505,7 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
+                          gap: '0.25rem',
                           fontSize: '0.75rem',
                           fontWeight: 700,
                           padding: '0.22rem 0.6rem',
@@ -488,7 +514,7 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
                           color: '#b45309',
                         }}
                       >
-                        Host
+                        <Crown size={12} /> Host
                       </span>
                     )}
                   </div>
@@ -577,13 +603,16 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
             <div style={{ marginBottom: '1.25rem' }}>
               <label
                 style={{
-                  display: 'block',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
                   fontSize: '0.88rem',
                   fontWeight: 700,
                   color: '#1e293b',
                   marginBottom: '0.45rem',
                 }}
               >
+                <Wallet size={16} color="#f97316" />
                 My Budget Limit
               </label>
               <input
@@ -602,13 +631,16 @@ function RoomLobby({ roomCode, currentUser, onLeaveRoom }) {
             <div style={{ marginBottom: '1.25rem' }}>
               <label
                 style={{
-                  display: 'block',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
                   fontSize: '0.88rem',
                   fontWeight: 700,
                   color: '#1e293b',
                   marginBottom: '0.45rem',
                 }}
               >
+                <Ban size={16} color="#dc2626" />
                 Cannot Eat / Allergies
               </label>
 
