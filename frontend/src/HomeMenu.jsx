@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
-<<<<<<< HEAD
+import { useState, useEffect } from 'react';
 import { Utensils, Plus, ArrowRight } from 'lucide-react';
-=======
->>>>>>> 79618afe5ea0f3eca98bbc69c4185d7b5659eb41
 import './HomeMenu.css';
 
 export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogout }) {
@@ -10,29 +7,18 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
   const [myRooms, setMyRooms] = useState([]);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (!user) return;
-=======
-    if(!user) return;
->>>>>>> 79618afe5ea0f3eca98bbc69c4185d7b5659eb41
     const params = new URLSearchParams({
       name: user.name || '',
       email: user.email || '',
     });
 
     fetch(`http://localhost:5000/api/my-rooms?${params.toString()}`)
-<<<<<<< HEAD
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setMyRooms(data);
       })
       .catch(() => setMyRooms([]));
-=======
-    .then((res) => res.json()).then((data) => {
-      if(Array.isArray(data)) setMyRooms(data);
-    })
-    .catch(() => setMyRooms([]));
->>>>>>> 79618afe5ea0f3eca98bbc69c4185d7b5659eb41
   }, [user]);
 
   const handleJoin = (e) => {
@@ -54,7 +40,7 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
         </div>
         <div className="nav-actions">
           <span className="user-greeting">Hi, {user?.name || 'Foodie'}</span>
-          <button className="btn-secondary" onClick={onLogout}>
+          <button type="button" className="btn-secondary" onClick={onLogout}>
             Log Out
           </button>
         </div>
@@ -74,7 +60,7 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
               <h3>Start a Group Session</h3>
               <p>Set your budget, location radius, and dietary filters, then invite your group.</p>
             </div>
-            <button className="btn-primary" onClick={onCreateSession}>
+            <button type="button" className="btn-primary" onClick={onCreateSession}>
               <Plus size={18} />
               Create New Session
             </button>
@@ -99,48 +85,6 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
               </button>
             </form>
           </div>
-
-
-          {/* Active Joined Rooms*/}
-          {myRooms.length > 0 && (
-            <section style={{ marginTop: '2rem', textAlign: 'left'}}>
-              <h3 style={{ margin: '0 0 0.75rem', fontSize: '1.1rem', color: '#0f172a'}}>
-                Your Rooms ({myRooms.length})
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
-                {myRooms.map((room) => (
-                  <div
-                    key={room.code}
-                    onClick={() => onJoinSession(room.code)}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '14px',
-                      padding: '1rem 1.25rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.04)',
-                    }}
-                    >
-                      <div>
-                        <div style={{fontWeight: 800, fontSize: '1.15rem', letterSpacing: '0.1rem', color: '#0f172a'}}>
-                          {room.code}
-                        </div>
-                        <div style={{fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem'}}>
-                          Host: <strong>{room.host}</strong> • {room.members.length}{' '}
-                          {room.members.length === 1 ? 'member' : 'members'}
-                        </div>
-                      </div>
-                      <button type="button" className='btn-primary'>
-                        Rejoin →
-                      </button>
-                    </div>
-                ))}
-              </div>
-            </section>
-          )}
         </div>
 
         {/* Active Joined Rooms */}
