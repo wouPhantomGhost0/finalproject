@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Utensils, Plus, ArrowRight } from 'lucide-react';
 import './HomeMenu.css';
 
 export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogout }) {
   const [roomCode, setRoomCode] = useState('');
-  const [myRooms, setMyRooms] = useState([]);
+    const [myRooms, setMyRooms] = useState([]);
 
   useEffect(() => {
     if (!user) return;

@@ -81,7 +81,7 @@ function App() {
         setRoomError(data.message || 'Room not found.');
       }
     } catch (err) {
-      console.error('Fetch error:', err);
+
       setRoomError('Cannot reach the server. Make sure node server.js is running.');
     }
   };
