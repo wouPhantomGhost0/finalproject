@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Utensils, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import HomeMenu from './HomeMenu';
 import RoomLobby from './RoomLobby';
@@ -9,8 +9,28 @@ function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
-  const [activeRoom, setActiveRoom] = useState(null);
+
+const [currentUser, setCurrentUser] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem('cravematch_user'));
+  } catch {
+    return null;
+  }
+});
+const [activeRoom, setActiveRoom] = useState(
+  () => localStorage.getItem('cravematch_room') || null
+);
+
+useEffect(() => {
+  if (currentUser) localStorage.setItem('cravematch_user', JSON.stringify(currentUser));
+  else localStorage.removeItem('cravematch_user');
+}, [currentUser]);
+
+useEffect(() => {
+  if (activeRoom) localStorage.setItem('cravematch_room', activeRoom);
+  else localStorage.removeItem('cravematch_room');
+}, [activeRoom]);
+
   const [roomError, setRoomError] = useState('');
 
   const handleSubmit = (e) => {
