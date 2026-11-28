@@ -1,25 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Utensils, Plus, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, ArrowRight, Flame, Sparkles, FolderOpen } from 'lucide-react';
 import './HomeMenu.css';
 
-export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogout }) {
+export default function HomeMenu({
+  user,
+  featuredSpots = [],
+  onCreateSession,
+  onJoinSession,
+  onOpenExplore,
+  onOpenLobbies,
+}) {
   const [roomCode, setRoomCode] = useState('');
-  const [myRooms, setMyRooms] = useState([]);
-
-  useEffect(() => {
-    if (!user) return;
-    const params = new URLSearchParams({
-      name: user.name || '',
-      email: user.email || '',
-    });
-
-    fetch(`http://localhost:5000/api/my-rooms?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setMyRooms(data);
-      })
-      .catch(() => setMyRooms([]));
-  }, [user]);
 
   const handleJoin = (e) => {
     e.preventDefault();
@@ -28,93 +19,127 @@ export default function HomeMenu({ user, onCreateSession, onJoinSession, onLogou
     }
   };
 
+  const featuredList = featuredSpots.filter((s) => s.tag === 'FEATURED');
+  const trendingSpot = featuredSpots.find((s) => s.tag === 'TRENDING');
+
   return (
-    <div className="home-container">
-      {/* Top Navigation Bar */}
-      <nav className="navbar">
-        <div className="nav-brand">
-          <span className="brand-icon">
-            <Utensils size={20} />
-          </span>
-          <h2>CraveMatch</h2>
-        </div>
-        <div className="nav-actions">
-          <span className="user-greeting">Hi, {user?.name || 'Foodie'}</span>
-          <button type="button" className="btn-secondary" onClick={onLogout}>
-            Log Out
-          </button>
-        </div>
-      </nav>
+    <main className="home-page">
+      <div className="home-header-row">
+        <h1 className="page-title">HOME</h1>
+        <p>
+          Welcome back, <strong>{user?.name || 'Foodie'}</strong> — create a new dining lobby or
+          enter an invite code to match.
+        </p>
+      </div>
 
-      {/* Main Dashboard / Action Cards */}
-      <main className="home-main">
-        <header className="hero-section">
-          <h1>Where are we eating tonight?</h1>
-          <p>Start a group session or enter a code to match preferences in seconds.</p>
-        </header>
+      {/* Primary Action Grid */}
+      <section className="home-actions-grid">
+        {/* Left: Start a Room Lobby */}
+        <div className="home-action-box highlight">
+          <div>
+            <h2 className="home-action-title">START A ROOM LOBBY</h2>
+            <p className="home-action-sub">
+              Create a new session, invite friends, set your PHP budget &amp; allergies, and start
+              matching spots.
+            </p>
+          </div>
 
-        <div className="action-grid">
-          {/* Card 1: Host a Session */}
-          <div className="action-card primary-card">
-            <div>
-              <h3>Start a Group Session</h3>
-              <p>Set your budget, location radius, and dietary filters, then invite your group.</p>
-            </div>
-            <button type="button" className="btn-primary" onClick={onCreateSession}>
+          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="cm-btn-orange"
+              style={{ flex: 1, minWidth: '185px', height: '46px' }}
+              onClick={onCreateSession}
+            >
               <Plus size={18} />
-              Create New Session
+              create a new session
+            </button>
+
+            <button
+              type="button"
+              className="cm-btn-outline"
+              style={{ height: '46px' }}
+              onClick={onOpenLobbies}
+            >
+              <FolderOpen size={17} />
+              My Lobbies
             </button>
           </div>
+        </div>
 
-          {/* Card 2: Join a Session */}
-          <div className="action-card">
-            <div>
-              <h3>Join with a Code</h3>
-              <p>Got an invite code from a friend? Enter it below to start swiping.</p>
-            </div>
-            <form onSubmit={handleJoin} className="join-form">
-              <input
-                type="text"
-                placeholder="e.g. DINE42"
-                maxLength={6}
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
-              />
-              <button type="submit" className="btn-dark">
-                Join
-              </button>
-            </form>
+        {/* Right: Join With a Code */}
+        <div className="home-action-box">
+          <div>
+            <h2 className="home-action-title">JOIN WITH A CODE</h2>
+            <p className="home-action-sub">
+              Got a 6-character lobby code from your group host? Enter it below to jump in.
+            </p>
+          </div>
+
+          <form onSubmit={handleJoin} className="home-join-row">
+            <input
+              type="text"
+              className="home-code-input"
+              placeholder="ex. 123ABC"
+              maxLength={6}
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value)}
+            />
+            <button type="submit" className="cm-btn-dark" style={{ height: '46px' }}>
+              JOIN <ArrowRight size={16} />
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* Featured & Trending Showcase */}
+      <section className="showcase-grid">
+        {/* Left: FEATURED */}
+        <div>
+          <div className="showcase-section-label">
+            <Sparkles size={16} color="#f97316" />
+            FEATURED
+          </div>
+          <div className="featured-pair">
+            {featuredList.map((spot) => (
+              <div
+                key={spot.id}
+                className="spot-tile"
+                onClick={() => onOpenExplore && onOpenExplore(spot)}
+              >
+                <img src={spot.image} alt={spot.name} />
+                <div className="spot-tile-overlay">
+                  <span className="spot-tile-badge">FEATURED</span>
+                  <h3>{spot.name}</h3>
+                  <p>{spot.priceRange}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Active Joined Rooms */}
-        {myRooms.length > 0 && (
-          <section className="rooms-section">
-            <h3>Your Rooms ({myRooms.length})</h3>
-            <div className="rooms-list">
-              {myRooms.map((room) => (
-                <div
-                  key={room.code}
-                  className="room-item-card"
-                  onClick={() => onJoinSession(room.code)}
-                >
-                  <div>
-                    <div className="room-code-label">{room.code}</div>
-                    <div className="room-meta">
-                      Host: <strong>{room.host}</strong> &bull; {room.members.length}{' '}
-                      {room.members.length === 1 ? 'member' : 'members'}
-                    </div>
-                  </div>
-                  <button type="button" className="btn-primary">
-                    Rejoin
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              ))}
+        {/* Right: TRENDING */}
+        <div>
+          <div className="showcase-section-label">
+            <Flame size={16} color="#f97316" />
+            TRENDING
+          </div>
+          {trendingSpot && (
+            <div
+              className="spot-tile"
+              style={{ height: 'calc(100% - 28px)' }}
+              onClick={() => onOpenExplore && onOpenExplore(trendingSpot)}
+            >
+              <img src={trendingSpot.image} alt={trendingSpot.name} />
+              <div className="spot-tile-overlay">
+                <span className="spot-tile-badge">TRENDING</span>
+                <h3>{trendingSpot.name}</h3>
+                <p>{trendingSpot.priceRange}</p>
+              </div>
             </div>
-          </section>
-        )}
-      </main>
-    </div>
+          )}
+        </div>
+      </section>
+    </main>
   );
 }

@@ -27,3 +27,15 @@ export async function signupUser(name, email, password) {
   }
   return data;
 }
+
+export async function fetchUserRooms(user) {
+  if (!user) return [];
+  const params = new URLSearchParams({
+    name: user.name || '',
+    email: user.email || '',
+  });
+
+  const response = await fetch(`${API_URL}/my-rooms?${params.toString()}`);
+  const data = await response.json();
+  return Array.isArray(data) ? data : [];
+}
